@@ -1,0 +1,8 @@
+1. I created a channel.
+	1. I sent an event to both channels.
+	2. I got the same result on both events.  I assume this is because both events were "echo/hello" events, and were handled by the same rule in the pico.
+2. I deleted the new channel.
+	1. I sent "echo/hello" to that channel.
+	2. Sending an event to a nonexistent channel results in a 404.  Nonexistent identifiers cannot ever be found.
+3. I sent "ecco/hello" to a channel.  The response is an empty "directives" list.  I assume this is because the event matched no rules.
+
