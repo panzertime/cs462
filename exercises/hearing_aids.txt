@@ -1,0 +1,3 @@
+1. There are multiple components which communicate with each other to perform a task.
+2. The hearing aids apparently require a phone app to be used.  I would assume this phone app is the "centralized" part of the centralized system.
+3. Human ears expect to hear a sound simultaneously.  Different latency between components in this system could cause the system to fail to meet that expectation.
