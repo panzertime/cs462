@@ -75,7 +75,7 @@ ruleset wovyn_base {
       time = event:attr("timestamp")
       message = "Temperature " + temp + " violated threshold " + temperature_threshold + " at " + time
     }
-    twilio: send_sms(notification_phone,
+    twilio:send_sms(notification_phone,
       notification_sender,
       message)
   }
