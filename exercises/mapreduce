@@ -1,0 +1,20 @@
+1. The master collects the final data from reducers.
+
+2. The mapper counts the number of each word in the list, in the given chapter—that is, maps the raw chapter into an input appropriate for the reducer
+
+3. Mappers are performing the same “action” on the entire dataset (finding the occurences for each word). Reducers are taking the output from many mappers and summarizing the data.
+
+4. The grouper has to keep up with the mappers and keep the reducers busy, while also sorting piles—all the data goes through the groupers, whereas the mappers and reducers each just have a chunk
+
+5. Mappers worked on different chapters independently. Reducers summarize outputs for different words independently.
+
+6. The groupers depended on the mappers finishing their counts. The reducers depended on the groupers sorting all the cards. The master depends on the reducers reducing the grouped cards.
+
+7. The time it would take to process more chapters wouldn’t increase much because even with a limit on how much you could parallelize the work of reducers, the reducers job is easier than the mappers job and would not have much impact.
+
+8:
+1. the mappers would be in charge of a range of numbers. Find all the words of each length and write that word on a card. Groupers put the words of  the same length in piles. Reducers write all the words of length n on a card.
+
+2. The mapper checks if each verse has the word, the reducer just grabs all the words into one list
+
+3. The mapper gets the access logs from the servers and breaks the log events out by URL, and the reducer sums up the accesses per URL
