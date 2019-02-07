@@ -1,0 +1,98 @@
+1. I just pasted it in the pico-engine editor. I made that VS Code plugin for syntax highlighting, and thought about rigging the language server up to the KRL compiler for rudimentary "linting," but didn't bother.
+
+2. I used a conditional rule. I wasn't aware of circumstances where an event with no genericThing attribute would be raised, so wasn't worried about selecting too often. I considered using an eventex to take advantage of capturing, but the other way turned out to be easier to implement.
+
+3. There was one directive returned. The only rule selected was process_heartbeat.
+{
+  "directives": [
+    {
+      "options": {
+        "message": "Wovyn's heart is beating",
+        "heartbeat_temps": [
+          {
+            "name": "ambient temperature",
+            "transducerGUID": "28E3A5680900008D",
+            "units": "degrees",
+            "temperatureF": 100,
+            "temperatureC": 24.06
+          }
+        ]
+      },
+      "name": "say",
+      "meta": {
+        "rid": "wovyn_base",
+        "rule_name": "process_heartbeat",
+        "txn_id": "cjru2c445000807g7hxix1wug",
+        "eid": "0"
+      }
+    }
+  ]
+}
+
+4. Two directives were returned. Both process_heartbeat and find_high_temps were selected.
+{
+  "directives": [
+    {
+      "options": {
+        "message": "Wovyn's heart is beating",
+        "heartbeat_temps": [
+          {
+            "name": "ambient temperature",
+            "transducerGUID": "28E3A5680900008D",
+            "units": "degrees",
+            "temperatureF": 100,
+            "temperatureC": 24.06
+          }
+        ]
+      },
+      "name": "say",
+      "meta": {
+        "rid": "wovyn_base",
+        "rule_name": "process_heartbeat",
+        "txn_id": "cjru2em40000907g7mmnawudj",
+        "eid": "0"
+      }
+    },
+    {
+      "options": {
+        "message": "Threshold violated!",
+        "max temp": 100,
+        "threshold": 75
+      },
+      "name": "say",
+      "meta": {
+        "rid": "wovyn_base",
+        "rule_name": "find_high_temps",
+        "txn_id": "cjru2em40000907g7mmnawudj",
+        "eid": "0"
+      }
+    }
+  ]
+}
+
+5. Two rules that issue directives were selected in the second case while only one was in the first case. I have a swimlane available at https://static.swimlanes.io/988cf6315c503f24bc3121b277a09c37.png
+
+6. Yes, the find_high_temps rule is an event intermediary. It provides for looser coupling between temperature math and notification code by filtering the events that reach the notification rule to the bare minimum.
+
+7. In a case where the temperature is below the threshold (75), we see the following:
+
+2019-02-07T03:52:38.301Z [DEBUG] rule selected: wovyn_base -> find_high_temps
+2019-02-07T03:52:38.303Z [KLOG] Temp  72.6
+2019-02-07T03:52:38.304Z [KLOG] Time  "2019-02-07T03:52:38.293Z"
+2019-02-07T03:52:38.305Z [DEBUG] fired
+2019-02-07T03:52:38.307Z [DEBUG] event finished processing
+
+The find_high_temps rule is selected, and the temperature (logged in the prelude) is below the threshold, so no further rules are fired, and the event finishes processing.
+
+In a case where the temperature is above the threshold, we see the following:
+
+2019-02-07T03:57:19.524Z [DEBUG] rule selected: wovyn_base -> find_high_temps
+2019-02-07T03:57:19.526Z [KLOG] Temp  77.3
+2019-02-07T03:57:19.528Z [KLOG] Time  "2019-02-07T03:57:19.521Z"
+2019-02-07T03:57:19.529Z [DEBUG] fired
+2019-02-07T03:57:19.530Z [DEBUG] adding raised event to schedule: wovyn/threshold_violation attributes {"temperature":77.3,"timestamp":"2019-02-07T03:57:19.521Z"}
+2019-02-07T03:57:19.532Z [DEBUG] rule added to schedule: wovyn_base -> threshold_notification
+
+The temperature is now above the threshold, so a new event, wovyn/threshold_violation is raised, and the threshold_notification rule is selected for execution.
+
+
