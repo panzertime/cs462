@@ -1,0 +1,58 @@
+1. Write four user stories
+1.1. Store publishes delivery request (primary user story?)
+1.2. Driver makes a bid for delivery request
+1.3. Store sets minimum driver ranking for future requests
+1.4. Store chooses to automatically assign future drivers
+
+2. Possible model for above stories:
+{
+    "store_profiles" : {
+        "store_5692" : {
+            "auto_assign_drivers" : True,
+            "minimum_driver_ranking" : 7.0,
+            "store_location" : someLatitudeAndLongitude,
+            ...
+        },
+        "store_3711" : {
+            ...
+        }
+        ...
+    },
+    "driver_profiles" : {
+        "driverUID1" : {
+            "rating" : 6.8,
+            "lastLocation" : someLatitudeAndLongitude,
+            ...
+        },
+        "driverUID2" : {
+            ...
+        },
+        ...
+    }
+    "auto_assign_orders" : [
+        ...
+    ],
+    "driver_bid_orders" : {
+        "bid_orderUID1" : {
+            "store" : "store_5692",
+            "pickup_time" : someTimeStamp,
+            "urgent_delivery_time" : someTimeStampOrNull,
+            "destination" : somePlace,
+            "current_bids" : [
+                {
+                    "driver" : "someDriverUID",
+                    "bid_dollar_amount" : 12
+                },
+                {
+                    "driver" : "someOtherDriverUID",
+                    "bid_dollar_amount" : 9
+                },
+                ...
+            ]
+            ...
+        }
+    }
+}
+
+3. 
+
