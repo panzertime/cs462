@@ -19,29 +19,53 @@ ruleset temperature_store {
 
   global {
     temperatures = function() {
-      // return collected temperatures
+      ent:temperatures
     }
     threshold_violations = function() {
-      // return collected violations
+      ent:violations
     }
     inrange_temperatures = function() {
-      // return collected temperatures, minus violations
+      ent:temperatures.filter(function(temp) {
+        not ent:violations >< temp
+      })
     }
   }
 
   rule collect_temperatures {
     select when wovyn new_temperature_reading
-    // store event attrs in persistent entity variable
+    pre {
+      ev = {
+        "temp": event:attr("temperature"),
+        "time": event:attr("timestamp")
+      }.klog("Temperature collected ")
+    }
+    noop()
+    always {
+      ent:temperatures := (ent:temperatures.isnull()) => [ev] | ent:temperatures.append(ev)
+    }
   }
 
   rule collect_threshold_violations {
     select when wovyn threshold_violation
-    // store event attrs in persistent entity variable
+    pre {
+      ev ={
+        "temp": event:attr("temperature"),
+        "time": event:attr("timestamp")
+      }.klog("Violation collected ")
+    }
+    noop()
+    always {
+      ent:violations := (ent:violations.isnull()) => [ev] | ent:violations.append(ev)
+    }
   }
 
   rule clear_temperatures {
     select when sensor reading_reset
-    // reset temperatures stored by collect_* rules
+    noop()
+    always {
+      clear ent:temperatures;
+      clear ent:violations
+    }
   }
-
+  
 }
