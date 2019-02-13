@@ -1,0 +1,7 @@
+1. collect_temperatures gets selected every time a new temperature appears. It handles the "new data" in the guise of an event, while the temperatures function provides access to the internal entity state, so that we can query it.
+
+2. I filter elements from the temperatures entity variable depending on whether they are present in the violations entity variable. Both variables are arrays, so a filter() construction was more appropriate than something like a difference() construction.
+
+3. Nothing, at this point. I'm listing a ruleset as a module for any other rulesets right now, so not "providing" a function doesn't impact anything.
+
+4. If any of the functions isn't shared, I can't make a query to that function using HTTP transport.
