@@ -1,0 +1,53 @@
+<head>
+    <link rel="stylesheet" href="third-party/bootstrap-4.1.3/css/bootstrap.min.css">
+    <script src="third-party/bootstrap-4.1.3/js/bootstrap.min.js"></script>
+
+    <script src="third-party/jquery-3.3.1.min.js"></script>
+
+    <script>
+        prettyPrint = function(temperature) {
+            // turn temperature object into pretty logline
+        }
+        updatePage = function() {
+            // get temp_now
+            // get temperatures
+            // get violations
+            //  $(current temperature).html(set the temperature and use the degree sign)
+            //  for t in temperatures
+            //    $(temp list).append(prettyPrint(t))
+        };
+        window.setInterval(updatePage(), 1000);
+    </script>
+
+    <title>SPA: Snake Page Application</title>
+
+</head>
+
+<body>
+
+    <div class="container-fluid justify-content-center text-center" id="root_container">
+        <div style="background:transparent !important" class="row">
+            <div class="col-12">
+                <img src="image/snakes.png" />
+                <h1>Snake Habitat Temperature Dashboard</h1>
+            </div>
+        </div>
+        <div class="row" id="temp_row">
+            <div class="col-7">
+                <h2>Current Temperature Is:</h2>
+            </div>
+            <div class="col-5">
+                <h2>99&deg;</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <h3>All Temps</h3>
+            </div>
+            <div class="col-6">
+                <h3>Violating Temps</h3>
+            </div>
+        </div>
+    </div>
+
+</body>
