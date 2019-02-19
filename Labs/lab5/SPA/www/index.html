@@ -1,22 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"> 
 <head>
-    <link rel="stylesheet" href="third-party/bootstrap-4.1.3/css/bootstrap.min.css">
-    <script src="third-party/bootstrap-4.1.3/js/bootstrap.min.js"></script>
-
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <script src="third-party/jquery-3.3.1.min.js"></script>
+    <script defer src="third-party/bootstrap-4.1.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="third-party/bootstrap-4.1.3/css/bootstrap.min.css">
 
-    <script>
+    <script defer>
         prettyPrint = function(temperature) {
-            // turn temperature object into pretty logline
-        }
-        updatePage = function() {
-            // get temp_now
-            // get temperatures
-            // get violations
-            //  $(current temperature).html(set the temperature and use the degree sign)
-            //  for t in temperatures
-            //    $(temp list).append(prettyPrint(t))
+            return "<p>" + temperature.temp + " at " + temperature.time +"</p>"
         };
-        window.setInterval(updatePage(), 1000);
+
+        prettyTempNow = function(temperature) {
+            return "<h2>" + temperature + "&deg;</h2>"
+        };
+
+        updatePage = function() {
+            temp_now_URL = "http://192.168.56.102:8080/sky/cloud/2Akn2BEKhbSdHUGKYSHFU9/temperature_store/temperature_now"
+            temps_URL = "http://192.168.56.102:8080/sky/cloud/2Akn2BEKhbSdHUGKYSHFU9/temperature_store/temperatures"
+            vios_URL = "http://192.168.56.102:8080/sky/cloud/2Akn2BEKhbSdHUGKYSHFU9/temperature_store/threshold_violations"
+
+            $.get(temp_now_URL, function(data) {
+                $("#temp_disp").html(prettyTempNow(data));
+            });
+            $.get(temps_URL, function(data) {
+                $("#all_temps").html(data.map(temp => prettyPrint(temp)).join("\n"));
+            });
+            $.get(vios_URL, function(data) {
+                $("#vio_temps").html(data.map(temp => prettyPrint(temp)).join("\n"));
+            });
+        };
+
+        jQuery(document).ready(function() {
+            window.setInterval(updatePage, 1000);
+        });
     </script>
 
     <title>SPA: Snake Page Application</title>
@@ -24,7 +41,7 @@
 </head>
 
 <body>
-
+    
     <div class="container-fluid justify-content-center text-center" id="root_container">
         <div style="background:transparent !important" class="row">
             <div class="col-12">
@@ -36,16 +53,18 @@
             <div class="col-7">
                 <h2>Current Temperature Is:</h2>
             </div>
-            <div class="col-5">
+            <div class="col-5" id="temp_disp">
                 <h2>99&deg;</h2>
             </div>
         </div>
         <div class="row">
             <div class="col-6">
                 <h3>All Temps</h3>
+                <div id="all_temps"></div>
             </div>
             <div class="col-6">
                 <h3>Violating Temps</h3>
+                <div id="vio_temps"></div>
             </div>
         </div>
     </div>
