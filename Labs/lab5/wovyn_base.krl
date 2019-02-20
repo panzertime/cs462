@@ -8,7 +8,8 @@ ruleset wovyn_base {
       author "RT Hatfield"
     logging on
     use module twilio_keys
-    use module lab4.twilio alias twilio
+    use module lab3.twilio alias twilio
+    use module sensor_profile
     with account_sid = keys:twilio {
       "account_sid"
     }
@@ -18,8 +19,12 @@ ruleset wovyn_base {
   }
 
   global {
-    temperature_threshold = 70
-    notification_phone = "+19014513614"
+    temperature_threshold = function() {
+      sensor_profile:get_profile(){"threshold"}
+    }
+    notification_phone = function(){
+      sensor_profile:get_profile(){"notify_number"}
+    }
     notification_sender = "+19014728912"
   }
 
@@ -52,19 +57,21 @@ ruleset wovyn_base {
     pre {
       temp = event:attr("temperature").klog("Temp ")
       time = event:attr("timestamp").klog("Time ")
+      threshold = temperature_threshold()
       message = (temp > temperature_threshold) => "Threshold violated!" | "Threshold NOT violated!"
     }
     send_directive("say", {
       "message": message,
       "max temp": temp,
-      "threshold": temperature_threshold
+      "threshold": threshold
     })
     always {
       raise wovyn event "threshold_violation"
         attributes {
           "temperature": temp,
-          "timestamp": time
-        } if temp > temperature_threshold
+          "timestamp": time,
+          "threshold" : threshold
+        } if temp > threshold
     }
   }
 
@@ -73,9 +80,10 @@ ruleset wovyn_base {
     pre {
       temp = event:attr("temperature")
       time = event:attr("timestamp")
-      message = "Temperature " + temp + " violated threshold " + temperature_threshold + " at " + time
+      threshold = event:attr("threshold")
+      message = "Temperature " + temp + " violated threshold " + threshold + " at " + time
     }
-    twilio:send_sms(notification_phone,
+    twilio:send_sms(notification_phone(),
       notification_sender,
       message)
   }
