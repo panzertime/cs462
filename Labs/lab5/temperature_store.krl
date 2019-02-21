@@ -24,10 +24,10 @@ ruleset temperature_store {
       ent:temperature_now
     }
     temperatures = function() {
-      ent:temperatures
+      ent:temperatures.isnull() => [] | ent:temperatures
     }
     threshold_violations = function() {
-      ent:violations
+      ent:violations.isnull() => [] | ent:violations
     }
     inrange_temperatures = function() {
       ent:temperatures.filter(function(temp) {

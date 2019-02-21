@@ -9,13 +9,13 @@ ruleset wovyn_base {
     logging on
     use module twilio_keys
     use module lab3.twilio alias twilio
-    use module sensor_profile
     with account_sid = keys:twilio {
       "account_sid"
     }
     auth_token = keys:twilio {
       "auth_token"
     }
+    use module sensor_profile
   }
 
   global {
@@ -81,9 +81,10 @@ ruleset wovyn_base {
       temp = event:attr("temperature")
       time = event:attr("timestamp")
       threshold = event:attr("threshold")
+      phone = notification_phone()
       message = "Temperature " + temp + " violated threshold " + threshold + " at " + time
     }
-    twilio:send_sms(notification_phone(),
+    twilio:send_sms(phone,
       notification_sender,
       message)
   }

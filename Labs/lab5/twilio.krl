@@ -1,4 +1,4 @@
-ruleset lab4.twilio {
+ruleset lab3.twilio {
   meta {
     configure using account_sid = ""
                     auth_token = ""

@@ -9,7 +9,7 @@
 
     <script defer>
         prettyPrint = function (temperature) {
-            return "<p>" + temperature.temp + " at " + temperature.time + "</p>"
+            return "<p>" + temperature.temp + "&deg; at " + temperature.time + "</p>"
         };
 
         prettyTempNow = function (temperature) {
@@ -66,6 +66,15 @@
             })
         });
     </script>
+    <script>
+        clear_url = "http://192.168.56.102:8080/sky/event/2Akn2BEKhbSdHUGKYSHFU9/0/sensor/reading_reset";
+
+        jQuery(document).ready(function() {
+            $("#clearButton").on("click", function(event) {
+                $.get(clear_url);
+            })
+        });
+    </script>
 
     <title>SPA: Snake Page Application</title>
 </head>
@@ -92,6 +101,9 @@
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#profileModal">
                     Profile Commander
                 </button>
+                <button type="button" class="btn btn-danger" id="clearButton">
+                    Clear Temps
+                </button>
             </div>
         </div>
         <div class="row">
@@ -105,7 +117,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="modal fade" id="profileModal" tabindex="-1" role="dialog" aria-labelledby="profileModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
