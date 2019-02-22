@@ -1,0 +1,7 @@
+1. This assignment was pretty darn easy just following the instructions given in this and the previous labs. One thing that did trip me up was I never bothered to provide defaults for the temperature entity variables. I went back and added some rather than dealing with the nulls in the SPA's Javascript. 
+
+2. Well, only sensor_profile does anything to store or update or retrieve the state. All the other rulesets that have a need-to-know are just clients of the sensor_profile ruleset and don't touch its events at all.
+
+3. sensor_profile uses the provides pragma to make functions available to rulesets that use it as a module.
+
+4. Sure, if they raise a sensor:profile_updated event.
