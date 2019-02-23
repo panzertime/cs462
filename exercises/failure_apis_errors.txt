@@ -1,0 +1,42 @@
+Part 1
+
+Success Response:
+HTTP/1.1 200 OK
+
+Failure Responses:
+    (POST need prerequisite) 
+    HTTP/1.1 409 Conflict
+    Content-Length:...
+    Content-Type: application/xml
+    <next xmlns-"http://example.org/state-machine"
+        rel=".../classes/:cid"
+        uri=".../classes/:cid/students"
+        type="application/xml"/>
+
+    (POST class full)
+    HTTP/1.1 409 Conflict
+    Content-Length:...
+    Content-Type: application/xml
+    <next xmlns-"http://example.org/state-machine"
+        rel=".../classes/add-code"
+        uri=".../classes/add-code/:cid"
+        type="application/xml"/>
+
+    (DELETE postrequisite scheduled)
+    HTTP/1.1 409 Conflict
+    Content-Length:...
+    Content-Type: application/xml
+    <next xmlns-"http://example.org/state-machine"
+        rel=".../classes/:post-req-id"
+        uri=".../classes/:post-req-id/students/:sid"
+        type="application/xml"/>
+
+Part 2
+
+1. Yes. Many people could try to add a class all at once, and the easiest way to handle that contention is to put people in a queue until the class is full, and then send everyone 409 Conflict and make them waitlist or get an add/drop code. Anyone who has ever been a freshman has experienced this.
+
+2. If a student attempts to add multiple classes all at once, they need to know which ones succeed and which are rejected for class size or prerequisite reasons. HTTP and the URI design make this clear to the client. The server's interaction with the database (i.e. the "registrar" checking class lists and course requirements) may involve batching requests or doing them asynchronously, so correlation would be needed there as well.
+
+3. Yes. Consider the following: What if a student attempts to add a class, passes the checks, and gets "confirmation" before the add-transaction finishes behind the scenes. The student changes their mind, submits a drop request, and the drop request "works" and they get confirmation. Now what happens when the add-transaction finally completes? The proper behavior in such a scenario has to be explicitly defined, or at least the transactions have to be properly ordered and checked.
+
+4. Yes. A bunch of students might add and drop the same class roughly simultaneously. If the class is near capacity, the add/drop system faces a situation where adds could check the class list, see that it's full, and deny a student because another student's drop action isn't finished (i.e. a dirty read). We've already put a queue in place, so maybe we can serialize the transactions as well.
