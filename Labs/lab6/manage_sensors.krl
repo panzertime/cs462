@@ -9,9 +9,11 @@ ruleset manage_sensors {
         logging on
         use module io.picolabs.wrangler alias wrangler
         provides
-        sensors
+        sensors,
+        temperatures
         shares
-        sensors
+        sensors,
+        temperatures
     }
 
     global {
@@ -19,14 +21,12 @@ ruleset manage_sensors {
             ent:sensors.isnull() => {} | ent:sensors
         }
         
-        get_temperatures = function() {
-            ent:sensors.keys().reduce(function(acc, name){
-                acc.put(
-                    {
-                        "name" : name,
-                        "temperatures" : wrangler.skyQuery(ent:sensors.get([name]), "temperature_store", "temperatures", null)
-                    }
-                )
+        temperatures = function() {
+            ent:sensors.keys().map(function(name){
+              {
+                  "name" : name,
+                  "temperatures" : wrangler:skyQuery(ent:sensors.get([name]), "temperature_store", "temperatures", null)
+              }
             })
         }
 
