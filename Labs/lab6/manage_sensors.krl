@@ -15,13 +15,7 @@ ruleset manage_sensors {
     }
 
     global {
-        remember_sensor = function(name, eci) {
-            ent:sensors := ent:sensors.isnull() => {name : eci} | ent:sensors.put([name], eci)
-        }
 
-        forget_sensor = function(name) {
-            ent:sensors := ent:sensors.delete([name])
-        }
 
         sensors = function() {
             ent:sensors.isnull() => {} | ent:sensors
@@ -50,11 +44,14 @@ ruleset manage_sensors {
     rule add_sensor {
         select when sensor new_sensor
         pre {
-            name = event:attrs("name")
-            exists = ent:sensors.keys() <> name
+            name = event:attr("name")
+            exists = ent:sensors >< name
         }
-        if name >< ent:sensors.keys() then
-            send_directive("sensor_already_exists", {name: ent:sensors.get([name])})
+        if exists then
+            send_directive("sensor_already_exists", {
+              "name" : name,
+              "eci" : ent:sensors.get([name])
+            })
         notfired {
             raise wrangler event "child_creation"
                 attributes {
@@ -71,13 +68,16 @@ ruleset manage_sensors {
     rule save_new_sensor {
         select when wrangler child_initialized
         pre {
-            name = event:attrs("name")
-            eci = event:attrs("eci")
+            name = event:attr("name")
+            eci = event:attr("eci")
         }
-        send_directive("sensor_initialized", {name: eci})
-        fired {
-            remember_sensor(name, eci)
-            event:send({
+        
+        every {
+          send_directive("sensor_initialized", {
+            "name" : name,
+            "eci" : eci
+          });
+          event:send({
                 "eci": eci,
                 "eid": "update-profile",
                 "domain": "sensor",
@@ -88,19 +88,25 @@ ruleset manage_sensors {
                     "name" : name,
                     "notify_number" : get_number()
                 }
-            })
+            });
+        }
+        fired {
+          ent:sensors := ent:sensors.isnull() => {}.put([name], eci) | ent:sensors.put([name], eci)
         }
     }
 
     rule remove_sensor {
         select when sensor unneeded_sensor
         pre {
-            name = event:attrs("name")
+            name = event:attr("name")
         }
         if ent:sensors >< name then
-            send_directive("deleting_sensor", {name : ent:sensors.get([name])})
+            send_directive("deleting_sensor", {
+              "name" : name,
+              "eci" : ent:sensors.get([name])
+            })
         fired {
-            forget_sensor(name)
+            ent:sensors := ent:sensors.delete([name])
         }
     }
 
