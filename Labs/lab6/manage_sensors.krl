@@ -8,15 +8,19 @@ ruleset manage_sensors {
         author "RT Hatfield"
         logging on
         use module io.picolabs.wrangler alias wrangler
+        provides
+        sensors
+        shares
+        sensors
     }
 
     global {
         remember_sensor = function(name, eci) {
-            ent:sensors.isnull() => {name : eci} | ent:sensors.put([name], eci)
+            ent:sensors := ent:sensors.isnull() => {name : eci} | ent:sensors.put([name], eci)
         }
 
         forget_sensor = function(name) {
-            // figure this out
+            ent:sensors := ent:sensors.delete([name])
         }
 
         sensors = function() {
@@ -28,7 +32,7 @@ ruleset manage_sensors {
                 acc.put(
                     {
                         "name" : name,
-                        "temperatures" : wrangler.skyQuery(eci, "temperature_store", "temperatures", null)
+                        "temperatures" : wrangler.skyQuery(ent:sensors.get([name]), "temperature_store", "temperatures", null)
                     }
                 )
             })
@@ -49,7 +53,7 @@ ruleset manage_sensors {
             name = event:attrs("name")
             exists = ent:sensors.keys() <> name
         }
-        if name <> ent:sensors.keys() then
+        if name >< ent:sensors.keys() then
             send_directive("sensor_already_exists", {name: ent:sensors.get([name])})
         notfired {
             raise wrangler event "child_creation"
@@ -90,8 +94,14 @@ ruleset manage_sensors {
 
     rule remove_sensor {
         select when sensor unneeded_sensor
-        // delete the pico in the event attrs
-        // deletes the entity variable for this pico
+        pre {
+            name = event:attrs("name")
+        }
+        if ent:sensors >< name then
+            send_directive("deleting_sensor", {name : ent:sensors.get([name])})
+        fired {
+            forget_sensor(name)
+        }
     }
 
 }
