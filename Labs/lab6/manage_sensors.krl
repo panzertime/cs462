@@ -15,12 +15,10 @@ ruleset manage_sensors {
     }
 
     global {
-
-
         sensors = function() {
             ent:sensors.isnull() => {} | ent:sensors
         }
-
+        
         get_temperatures = function() {
             ent:sensors.keys().reduce(function(acc, name){
                 acc.put(
@@ -101,11 +99,15 @@ ruleset manage_sensors {
             name = event:attr("name")
         }
         if ent:sensors >< name then
-            send_directive("deleting_sensor", {
-              "name" : name,
-              "eci" : ent:sensors.get([name])
-            })
+          send_directive("deleting_sensor", {
+            "name" : name,
+            "eci" : ent:sensors.get([name])
+          });
         fired {
+            raise wrangler event "child_deletion"
+              attributes {
+                "name" : name
+              };
             ent:sensors := ent:sensors.delete([name])
         }
     }
