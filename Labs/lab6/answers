@@ -1,1 +1,7 @@
+1. I listed the rids of the rulesets as attributes of the wrangler/child_creation event I raised.
 
+2. I only send the profile update after recieving the wrangler/child_initialized event. This prevents the child from getting a sensor/profile_udpated event before it is ready.
+
+3. I used Python to send HTTP requests to the pico-engine host. I have my picos send back directives with the eci of newly-created picos, so it's fairly straightforward to "wrangle" them in that way.
+
+4. I would need to create subscriptions with channels between each pair of picos that needs to communicate.
