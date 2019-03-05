@@ -1,0 +1,57 @@
+{
+    "heartbeat" : {
+        "emitterGUID":"5CCF7F2BD537",
+        "eventDomain":"wovyn.emitter",
+        "eventName":"sensorHeartbeat",
+        "genericThing":{
+            "typeId":"2.1.2",
+            "typeName":"generic.simple.temperature",
+            "healthPercent":99,
+            "heartbeatSeconds":10,
+            "data":{
+                "temperature":[
+                    {
+                        "name":"ambient temperature",
+                        "transducerGUID":"28E3A5680900008D",
+                        "units":"degrees",
+                        "temperatureF":8,
+                        "temperatureC":24.06
+                    }
+                ]
+            }
+        },
+        "property":{
+            "name":"Wovyn_2BD537",
+            "description":"Temp1000",
+            "location":{
+                "description":"Timbuktu",
+                "imageURL":"http://www.wovyn.com/assets/img/wovyn-logo-small.png",
+                "latitude":"16.77078",
+                "longitude":"-3.00819"
+            }
+        },
+        "specificThing":{
+            "make":"Wovyn ESProto",
+            "model":"Temp1000",
+            "typeId":"1.1.2.2.1000",
+            "typeName":"enterprise.wovyn.esproto.wtemp.1000",
+            "thingGUID":"5CCF7F2BD537.1",
+            "firmwareVersion":"Wovyn-WTEMP1000-1.14",
+            "transducer":[
+                {
+                    "name":"Maxim DS18B20 Digital Thermometer",
+                    "transducerGUID":"28E3A5680900008D",
+                    "transducerType":"Maxim Integrated.DS18B20",
+                    "units":"degrees",
+                    "temperatureC":24.06
+                }
+            ],
+            "battery":{
+                "maximumVoltage":3.6,
+                "minimumVoltage":2.7,
+                "currentVoltage":3.21
+            }
+        },
+        "version":2
+    }
+}
