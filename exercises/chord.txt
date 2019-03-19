@@ -1,0 +1,3 @@
+1. Check out the Excel spreadsheet
+
+2. No. According to the original Chord paper, each node is supposed to periodically update itself in the background. Further, nodes don't always have to be up-to-date to guarantee lookup; they just have to be up to date to guarantee OPTIMAL lookup. In some cases lookup may not work with out-of-date finger tables, but a retry after letting the periodic self-check run or forcing each node to update itself as it is examined solves that issue.
