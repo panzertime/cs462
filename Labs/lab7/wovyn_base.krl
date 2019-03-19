@@ -7,14 +7,7 @@ ruleset wovyn_base {
       >>
       author "RT Hatfield"
     logging on
-    use module twilio_keys
-    use module lab3.twilio alias twilio
-    with account_sid = keys:twilio {
-      "account_sid"
-    }
-    auth_token = keys:twilio {
-      "auth_token"
-    }
+    
     use module sensor_profile
   }
 
@@ -25,7 +18,6 @@ ruleset wovyn_base {
     notification_phone = function(){
       sensor_profile:get_profile(){"notify_number"}
     }
-    notification_sender = "+19014728912"
   }
 
   rule process_heartbeat {
@@ -51,8 +43,7 @@ ruleset wovyn_base {
         }
     }
   }
-
-  rule find_high_temps {
+    rule find_high_temps {
     select when wovyn new_temperature_reading
     pre {
       temp = event:attr("temperature").klog("Temp ")
@@ -74,19 +65,23 @@ ruleset wovyn_base {
         } if temp > threshold
     }
   }
-
-  rule threshold_notification {
+  
+  rule forward_violation {
     select when wovyn threshold_violation
-    pre {
-      temp = event:attr("temperature")
-      time = event:attr("timestamp")
-      threshold = event:attr("threshold")
-      phone = notification_phone()
-      message = "Temperature " + temp + " violated threshold " + threshold + " at " + time
+    noop()
+    always {
+      
+      // sends threshold violation notifications to raise a threshold violation event 
+      // to the sensor management pico. Ensure you use subscription information to 
+      // identify the manager not parent information. 
+      
+      
+      // send the event up the subscription channel here
+      event:send({"eci":"cj3btnlyj0001y6idgl4api8f", // should be like subscription{"Tx"}
+                  "domain":"wovyn", 
+                  "type":"threshold_violation", 
+                  "attrs":event:attrs})
     }
-    twilio:send_sms(phone,
-      notification_sender,
-      message)
   }
 
 }

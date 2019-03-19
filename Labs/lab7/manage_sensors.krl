@@ -89,8 +89,30 @@ ruleset manage_sensors {
             });
         }
         fired {
+            // create a subscription to this child
+            
           ent:sensors := ent:sensors.isnull() => {}.put([name], eci) | ent:sensors.put([name], eci)
         }
+    }
+
+    rule save_new_subscription {
+        select when wrangler subscription_added
+        pre {
+            name = "Bob"
+        }
+        noop()
+        always {
+            // save the subscription
+            // ent:subscriptions :=
+            //      {'subscription_role': [Tx_channels]}
+        }
+    }
+
+    rule accept_introductions {
+      select when unknowable null_event
+        // ??? need to rewatch the video
+        // Use event attributes to identify which sensor pico to introduce.  Make sure the auto subscription is working.
+        
     }
 
     rule remove_sensor {

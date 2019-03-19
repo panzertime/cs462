@@ -14,6 +14,7 @@ ruleset sensor_profile {
     }
 
     global {
+      
         get_profile = function() {
             ent:profile.isnull() => {"threshold":75} | ent:profile
         }
