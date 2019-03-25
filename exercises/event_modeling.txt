@@ -1,0 +1,19 @@
+1.
+
+2. select when email received where event:attr("subj").match("BYU") &&
+                                    event:attr("subj").match("football")
+
+3.
+
+4.
+
+5. select when count 5 (email received from re#.*#) push(senders)
+        within 20 minutes
+
+6.
+
+7. select when any 2 (web pageview url re#google#,
+            web pageview url re#yahoo#,
+            web pageview url re#msnbc#,
+            web pageview url re#cnn#,
+            web pageview url re#ksl#)
