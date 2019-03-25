@@ -23,9 +23,7 @@ ruleset manage_sensors {
         }
         
         temperatures = function() {
-          // "Not a function" ???
             subscription:established("Rx_role", "temp_sensor").map(function(sub){
-              sub{"Tx"}.klog("sub");
                 {
                   "name":ent:sensors.get([sub{"Tx"}]),
                   "temperatures":wrangler:skyQuery(sub{"Tx"}, 
@@ -40,9 +38,6 @@ ruleset manage_sensors {
             75
         }
 
-        get_number = function() {
-            "+19014513614"
-        }
     }
 
     rule add_sensor {
@@ -74,7 +69,7 @@ ruleset manage_sensors {
             name = event:attr("name")
             eci = event:attr("eci")
             wellKnown = wrangler:skyQuery(eci, "io.picolabs.subscription",
-                "wellKnown_Rx"){"id"}.klog("wellKnown of new sensor is: ")
+                "wellKnown_Rx"){"id"}
         }
         
         every {
@@ -91,8 +86,7 @@ ruleset manage_sensors {
                 "attrs": {
                     "threshold" : get_threshold(),
                     "location" : "",
-                    "name" : name,
-                    "notify_number" : get_number()
+                    "name" : name
                 }
             });
         }
@@ -112,7 +106,7 @@ ruleset manage_sensors {
         pre {
           remoteHost = event:attr("Tx_host")
           name = event:attr("name")
-          Tx  = event:attr("Tx").klog("Tx ")
+          Tx  = event:attr("Tx")
         }
         
         send_directive("sensor_added", {

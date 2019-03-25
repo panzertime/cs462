@@ -26,8 +26,7 @@ ruleset sensor_profile {
             ev = {
             "location" : event:attr("location"),
             "name" : event:attr("name"),
-            "threshold" : event:attr("threshold").isnull() => 75 | event:attr("threshold"),
-            "notify_number" : event:attr("notify_number").isnull() => "+15555555555" | event:attr("notify_number")
+            "threshold" : event:attr("threshold").isnull() => 75 | event:attr("threshold")
             }.klog("New profile ")
         }
         noop()

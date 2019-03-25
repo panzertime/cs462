@@ -16,9 +16,6 @@ ruleset wovyn_base {
     temperature_threshold = function() {
       sensor_profile:get_profile(){"threshold"}
     }
-    notification_phone = function(){
-      sensor_profile:get_profile(){"notify_number"}
-    }
   }
 
   rule process_heartbeat {
@@ -81,7 +78,7 @@ ruleset wovyn_base {
       pre {
         thing_subs = subscription.klog("subs")
       }
-      event:send({"eci":subscription{"Tx"}, // should be like subscription{"Tx"}
+      event:send({"eci":subscription{"Tx"},
                   "domain":"wovyn", 
                   "type":"threshold_violation", 
                   "attrs":event:attrs}); 
