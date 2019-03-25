@@ -22,6 +22,9 @@ ruleset manage_sensors {
         }
         
         temperatures = function() {
+            // change this to do
+            //    subscription:established().filter(Tx_role = temp_sensor)
+            //    and query ent:sensors by id to find the name
             ent:sensors.keys().map(function(name){
               {
                   "name" : name,
@@ -68,6 +71,8 @@ ruleset manage_sensors {
         pre {
             name = event:attr("name")
             eci = event:attr("eci")
+            wellKnown = wrangler:skyQuery(eci, "io.picolabs.subscription",
+                "wellKnown_Rx")
         }
         
         every {
@@ -89,19 +94,36 @@ ruleset manage_sensors {
             });
         }
         fired {
-            // create a subscription to this child
-            
+          raise wrangler event "subscription" attributes
+             { "name" : name,
+               "Rx_role": "temp_sensor",
+               "Tx_role": "zone",
+               "channel_type": "subscription",
+               "wellKnown_Tx" : wellKnown
+             };
+             // save name by Tx instead of by eci
           ent:sensors := ent:sensors.isnull() => {}.put([name], eci) | ent:sensors.put([name], eci)
         }
     }
 
     rule save_new_subscription {
         select when wrangler subscription_added
+        // "You will still need an entity variable to keep track of 
+        // names and any other information you need, but you won't use it to 
+        // find sensor picos. You can use the subscription Tx channel as a 
+        // unique identifier if you need to. Wrangler raises a wrangler 
+        // subscription_added event that might be handy to find the Tx."
+        //    This may not actually be necessary to do
+        //    This may be the best place to print out the Tx_host debug info
+        // subscription:established DOES NOT contain names => do need to save them
+        //    here. :(
+        // nvm we're saving the name earlier. what to do here?
         pre {
             name = "Bob"
         }
         noop()
         always {
+          // save the subscription's enrich Tx
             // save the subscription
             // ent:subscriptions :=
             //      {'subscription_role': [Tx_channels]}

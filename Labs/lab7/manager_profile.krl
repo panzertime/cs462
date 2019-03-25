@@ -9,12 +9,12 @@ ruleset manager_profile {
         logging on
         use module twilio_keys
         use module lab3.twilio alias twilio
-       // with account_sid = keys:twilio {
-        //  "account_sid"
-      //  }
-      //  auth_token = keys:twilio {
-      //    "auth_token"
-      //  }
+        with account_sid = keys:twilio {
+          "account_sid"
+        }
+        auth_token = keys:twilio {
+          "auth_token"
+        }
         provides
         get_profile
         shares
