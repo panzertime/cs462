@@ -8,6 +8,7 @@ ruleset manage_sensors {
         author "RT Hatfield"
         logging on
         use module io.picolabs.wrangler alias wrangler
+        use module io.picolabs.subscription alias subscription
         provides
         sensors,
         temperatures
@@ -22,14 +23,16 @@ ruleset manage_sensors {
         }
         
         temperatures = function() {
-            // change this to do
-            //    subscription:established().filter(Tx_role = temp_sensor)
-            //    and query ent:sensors by id to find the name
-            ent:sensors.keys().map(function(name){
-              {
-                  "name" : name,
-                  "temperatures" : wrangler:skyQuery(ent:sensors.get([name]), "temperature_store", "temperatures", null)
-              }
+          // "Not a function" ???
+            subscription:established("Rx_role", "temp_sensor").map(function(sub){
+              sub{"Tx"}.klog("sub");
+                {
+                  "name":ent:sensors.get([sub{"Tx"}]),
+                  "temperatures":wrangler:skyQuery(sub{"Tx"}, 
+                        "temperature_store", 
+                        "temperatures", 
+                        null)
+                }
             })
         }
 
@@ -46,12 +49,11 @@ ruleset manage_sensors {
         select when sensor new_sensor
         pre {
             name = event:attr("name")
-            exists = ent:sensors >< name
+            exists = ent:sensors.values() >< name
         }
         if exists then
             send_directive("sensor_already_exists", {
-              "name" : name,
-              "eci" : ent:sensors.get([name])
+              "name" : name
             })
         notfired {
             raise wrangler event "child_creation"
@@ -72,13 +74,14 @@ ruleset manage_sensors {
             name = event:attr("name")
             eci = event:attr("eci")
             wellKnown = wrangler:skyQuery(eci, "io.picolabs.subscription",
-                "wellKnown_Rx")
+                "wellKnown_Rx"){"id"}.klog("wellKnown of new sensor is: ")
         }
         
         every {
           send_directive("sensor_initialized", {
             "name" : name,
-            "eci" : eci
+            "eci" : eci,
+            "wellKnown_Rx" : wellKnown
           });
           event:send({
                 "eci": eci,
@@ -101,33 +104,23 @@ ruleset manage_sensors {
                "channel_type": "subscription",
                "wellKnown_Tx" : wellKnown
              };
-             // save name by Tx instead of by eci
-          ent:sensors := ent:sensors.isnull() => {}.put([name], eci) | ent:sensors.put([name], eci)
         }
     }
 
     rule save_new_subscription {
         select when wrangler subscription_added
-        // "You will still need an entity variable to keep track of 
-        // names and any other information you need, but you won't use it to 
-        // find sensor picos. You can use the subscription Tx channel as a 
-        // unique identifier if you need to. Wrangler raises a wrangler 
-        // subscription_added event that might be handy to find the Tx."
-        //    This may not actually be necessary to do
-        //    This may be the best place to print out the Tx_host debug info
-        // subscription:established DOES NOT contain names => do need to save them
-        //    here. :(
-        // nvm we're saving the name earlier. what to do here?
         pre {
-            name = "Bob"
+          remoteHost = event:attr("Tx_host")
+          name = event:attr("name")
+          Tx  = event:attr("Tx").klog("Tx ")
         }
-        noop()
-        always {
-          // save the subscription's enrich Tx
-            // save the subscription
-            // ent:subscriptions :=
-            //      {'subscription_role': [Tx_channels]}
-        }
+        
+        send_directive("sensor_added", {
+            "remoteHost" : remoteHost
+          })
+          always {
+            ent:sensors := ent:sensors.isnull() => {}.put([Tx], name) | ent:sensors.put([Tx], name)
+          }
     }
 
     rule accept_introductions {
@@ -142,17 +135,15 @@ ruleset manage_sensors {
         pre {
             name = event:attr("name")
         }
-        if ent:sensors >< name then
+        if ent:sensors.values() >< name then
           send_directive("deleting_sensor", {
-            "name" : name,
-            "eci" : ent:sensors.get([name])
+            "name" : name
           });
         fired {
             raise wrangler event "child_deletion"
               attributes {
                 "name" : name
               };
-            ent:sensors := ent:sensors.delete([name])
         }
     }
 

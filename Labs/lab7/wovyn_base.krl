@@ -9,6 +9,7 @@ ruleset wovyn_base {
     logging on
     
     use module sensor_profile
+    use module io.picolabs.subscription alias subscription
   }
 
   global {
@@ -66,22 +67,24 @@ ruleset wovyn_base {
     }
   }
   
+  rule auto_accept {
+    select when wrangler inbound_pending_subscription_added
+    fired {
+      raise wrangler event "pending_subscription_approval"
+        attributes event:attrs
+    }
+  }
+  
   rule forward_violation {
     select when wovyn threshold_violation
-    noop()
-    always {
-      
-      // sends threshold violation notifications to raise a threshold violation event 
-      // to the sensor management pico. Ensure you use subscription information to 
-      // identify the manager not parent information. 
-      
-      
-      // send the event up the subscription channel here
-      event:send({"eci":"cj3btnlyj0001y6idgl4api8f", // should be like subscription{"Tx"}
+    foreach subscription:established("Rx_role", "zone") setting (subscription)
+      pre {
+        thing_subs = subscription.klog("subs")
+      }
+      event:send({"eci":subscription{"Tx"}, // should be like subscription{"Tx"}
                   "domain":"wovyn", 
                   "type":"threshold_violation", 
-                  "attrs":event:attrs})
-    }
+                  "attrs":event:attrs}); 
   }
 
 }
