@@ -72,6 +72,26 @@ ruleset wovyn_base {
     }
   }
   
+  rule join_zone {
+    select when sensor join
+    pre {
+      new_zone_eci = event:attr("eci")
+      new_zone_host = event:attr("host")
+      name = sensor_profile:get_profile(){"name"}.isnull() => wrangler:randomPicoName() | sensor_profile:get_profile(){"name"}
+    }
+    event:send(
+      {
+        "eci": new_zone_eci,
+        "domain": "sensor",
+        "type": "hello",
+        "attrs" : {
+          "wellKnown" : subscription:wellKnown_Rx(){"id"},
+          "host" : meta:host,
+          "name" : name
+        }
+      }, host=new_zone_host)
+  }
+  
   rule forward_violation {
     select when wovyn threshold_violation
     foreach subscription:established("Rx_role", "zone") setting (subscription)

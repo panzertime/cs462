@@ -109,7 +109,7 @@ ruleset manage_sensors {
           Tx  = event:attr("Tx")
         }
         
-        send_directive("sensor_added", {
+        send_directive("sensor_subscribed", {
             "remoteHost" : remoteHost
           })
           always {
@@ -117,11 +117,24 @@ ruleset manage_sensors {
           }
     }
 
-    rule accept_introductions {
-      select when unknowable null_event
-        // ??? need to rewatch the video
-        // Use event attributes to identify which sensor pico to introduce.  Make sure the auto subscription is working.
-        
+    rule introduce_new_sensor {
+      select when sensor hello
+      pre {
+        wellKnown = event:attr("wellKnown")
+        name = event:attr("name")
+        host = event:attr("host").isnull() => meta:host | event:attr("host")
+      }
+      noop();
+      fired {
+        raise wrangler event "subscription" attributes
+             { "name" : name,
+               "Rx_role": "temp_sensor",
+               "Tx_role": "zone",
+               "channel_type": "subscription",
+               "wellKnown_Tx": wellKnown,
+               "Tx_host": host
+             };
+      }
     }
 
     rule remove_sensor {
