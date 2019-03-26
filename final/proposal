@@ -1,0 +1,47 @@
+Picos:
+flower shop
+    The flower shop handles orders (outside our scope).
+    The flower shop handles bids 
+driver pool
+    The driver pool handles a pool of drivers
+driver
+    The driver is a driver
+
+Events:
+flower shop -> driver pool
+    pickup request (request id, pickup time, delivery time, bid or auto select)
+        Lets the driver pool know that there is a new request and signals unassigned drivers to either submit bids or assigns an unassigned driver at random
+
+driver pool -> drivers
+    bid request (request id, pickup time, delivery time, store)
+        when bids requested, a number of drivers are instructed to send bids to the requesting shop
+    pickup assign (request id, pickup time, delivery time, store)
+        when auto-select requested, a single driver is instructed to accept an assignment
+
+driver -> flower shop
+    bid (request id, bid)
+        The driver can make a bid to the flower shop, if so instructed
+    assign accept (request id)
+        If the driver is assigned to a non-bidding job, the driver can notify the store that it is ready
+    delivery pickup (request id)
+        The store needs to mark when the driver picks the order up in order to adjust rankings, etc.
+    delivery done (request id)
+        When the customer presses the "delivered" button on the driver's device, the driver notifies the store this way
+
+flower shop -> driver
+    bid accept (request id)
+        the driver's bid has been accepted and is now responsible for the job
+    bid deny (request id)
+        the driver's bid has been denied, and the driver should notify the pool that it is free again
+    free (rank impact)
+        when a delivery is done, the flower shop notifies the driver of a change to its rating and terminates the job
+
+driver -> driver pool
+    bid rejected (request id)
+        the driver was not accepted by the flower shop and is now free for new jobs
+    free ()
+        the driver is finished with whatever job and is now assignable again
+
+When a driver is assigned or is instructed to make a bid, it creates a subscription to the flower shop for the duration of the bid or bid+job. If the bid is denied, or if the job is accepted and completed, the driver terminates its subscription to the flower shop before signaling to the pool that it is free for new assignment.
+
+Aside from what's detailed here, we have some boring events and queries for setting the shop's profile and getting a driver's current ranking, etc.
