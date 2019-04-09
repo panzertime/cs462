@@ -69,7 +69,7 @@ ruleset manage_sensors {
             name = event:attr("name")
             eci = event:attr("eci")
             wellKnown = wrangler:skyQuery(eci, "io.picolabs.subscription",
-                "wellKnown_Rx"){"id"}
+                "wellKnown_Rx"){"id"}.klog("wellKnown of new sensor is: ")
         }
         
         every {
@@ -104,7 +104,7 @@ ruleset manage_sensors {
     rule save_new_subscription {
         select when wrangler subscription_added
         pre {
-          remoteHost = event:attr("Tx_host")
+          remoteHost = event:attr("Tx_host").klog("Remote host: ")
           name = event:attr("name")
           Tx  = event:attr("Tx")
         }

@@ -24,6 +24,7 @@ ruleset manager_profile {
     global {
         from_phone = "+19014728912"
         
+        
         to_phone = function() {
             ent:profile.isnull() => "+19014513614" | ent:profile
         }
