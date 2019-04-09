@@ -1,0 +1,13 @@
+1. Because then a rogue pico could get in and start sending bad data, or attempt to sieze control of other picos by sending events it shouldn't, or it could eavesdrop and steal sensitive data.
+
+2. Sure. I implemented it that way, anyway. 
+
+3. You could "tag" sensors by putting their names in a defined namespace, or by using subscription roles, as I did. For example, I have "zone" and "temp_sensor" roles, and there could also be "hygro sensor" and "seismo sensor" roles. 
+
+4. I might have the management pico subscribe to collection picos, which each correspond to a zone, and each collection pico subscribe to the sensors on that floor.
+
+5. Sure. You would get multiple notifications, one from each collection that has a violation happen in it.
+
+6. I added it to the "management profile" ruleset. All that profile contains is the notification number, so it makes sense to isolate it together with the notification rule. 
+
+7. I moved (literally cut-pasted) the notification rule to the management profile ruleset. I replaced it in the wovyn_base ruleset with a simple "forwarding" rule that picks up any "threshold_violation" events on the sensor pico's bus and sends it to all established subscriptions with Rx_role "zone." It didn't make sense to me to change anything other than that.
