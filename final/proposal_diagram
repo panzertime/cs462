@@ -1,0 +1,45 @@
+flowerShop:FlowerShop
+driverPool:DriverPool
+driverA:Driver
+driverB:Driver
+driverC:Driver
+driverD:Driver
+
+[c:auto-assign Flower Shop chooses auto-assign scenario]
+flowerShop:driverPool.pickupRequest(id, pickup_time, delivery_time, auto_select)
+driverPool:driverA.pickupAssign(id, pickup, time, store_eci)
+driverA:driverA.newSubscription(flowerShop)
+driverA:flowerShop.assignAccept(id)
+driverA:flowerShop.pickup(id)
+flowerShop:flowerShop.google(delivery_address)
+flowerShop:driverA.updateRoute(directions)
+driverA:flowerShop.delivery(id)
+flowerShop:driverA.free(rankImpact)
+flowerShop:flowerShop.twitter(marketing_message)
+driverA:driverPool.free()
+[/c]
+
+[c:bid Flower Shop chooses bidding scenario]
+flowerShop:driverPool.pickupRequest(id, pickup_time, delivery_time, bid)
+driverPool:driverB.bidRequest(id, pickup_time, delivery_time, store_eci)
+driverB:driverB.newSubscription(flowerShop)
+driverB:flowerShop.bid(id, bid)
+flowerShop:driverB.bidDeny(id)
+driverB:driverPool.bidRejected(id)
+driverPool:driverC.bidRequest(id, pickup_time, delivery_time, store_eci)
+driverC:driverC.newSubscription(flowerShop)
+driverC:flowerShop.bid(id, bid)
+flowerShop:driverC.bidAccept(id)
+driverC:flowerShop.pickup(id)
+flowerShop:flowerShop.google(delivery_address)
+flowerShop:driverC.updateRoute(directions)
+driverC:flowerShop.delivery(id)
+flowerShop:driverC.free(rankImpact)
+flowerShop:flowerShop.twitter(marketing_message)
+driverC:driverPool.free()
+driverPool:driverD.bidRequest(id, pickup_time, delivery_time, store_eci)
+driverD:driverD.newSubscription(flowerShop)
+driverD:flowerShop.bid(id, bid)
+flowerShop:driverD.bidDeny(id)
+driverD:driverPool.bidRejected(id)
+[/c]
