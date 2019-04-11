@@ -104,6 +104,4 @@ ruleset wovyn_base {
                   "attrs":event:attrs}); 
   }
 
-  
-
 }
