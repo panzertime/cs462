@@ -6,6 +6,8 @@ ruleset temperature_store {
     for Storing Temperature Measurements
       >>
       author "RT Hatfield"
+    use module io.picolabs.subscription alias subscription
+
     logging on
     provides
       temperature_now,
@@ -78,25 +80,21 @@ ruleset temperature_store {
     select when sensor report_wanted
     pre {
       req_id = event:attr("req_id")
-      rx = meta:eci
-      tx = subscription:established("Rx", rx){"Tx"}
+      rx = meta:eci.klog("rx ")
+      tx = subscription:established("Rx", rx).head(){"Tx"}.klog("tx ")
       host = subscription:established("Rx", rx){"Tx_host"}
     }
-    always {
-      event:send({
-        "eci": tx,
-        "domain": "sensor",
-        "type": "report",
-        "attrs" : {
-          "req_id" : req_id,
-          "sensor" : rx,
-          "host" : meta:host,
-          "temperatures" : temperatures()
-        }
-      }, host=host)
-    }
-
-
+    event:send({
+      "eci": tx,
+      "domain": "sensor",
+      "type": "report",
+      "attrs" : {
+        "req_id" : req_id,
+        "sensor" : rx,
+        "host" : meta:host,
+        "temperatures" : temperatures()
+      }
+    }, host=host)
   }
   
 }

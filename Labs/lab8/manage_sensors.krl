@@ -11,10 +11,12 @@ ruleset manage_sensors {
         use module io.picolabs.subscription alias subscription
         provides
         sensors,
-        temperatures
+        temperatures,
+        last_five_reports
         shares
         sensors,
-        temperatures
+        temperatures,
+        last_five_reports
     }
 
     global {
@@ -37,46 +39,29 @@ ruleset manage_sensors {
         get_threshold = function() {
             75
         }
-
-        last_five_reports = function() {
-          /*
-get the keys of the map
-sort the keys
-splice(0,keys.length() - 6)
-reduce(function(tgt, k) {
-src = ent:req_id{k}
-src.set(["temperature_sensors"], src{"temperature_sensors"}.length())
-src.set(["responding"], src{"responding"}.length())
-tgt = tgt.isnull() => {} | tgt
-tgt.put([k], src)
-}
-/*
-          // get the 5 last reports, send those back, if more than five, 
-          // set entity variable to just those five
-          // (may be easier to not do this, but have an event that clears the log)
-          /*
-          // EXCEPT:
-          // make the sensors and responding be LISTS of the Rx's and Tx's, for matching
-          // and on sending, "collapse" them to just counts
-          ent:reports := {<report_id>: {"temperature_sensors" : 4,
-                  "responding" : 4,
-                  "temperatures" : [<temperature reports from sensors>]
-                 }
-}
-*/      
-          null
+        
+        get_reports = function() {
         }
 
-        
-
-
+        last_five_reports = function() {
+          ent:reports
+          /*
+          keys = ent:reports.keys();
+          keys = keys.splice(0, keys.length()-6);
+          keys.reduce(function(tgt, k) {
+            src = ent:reports.get([k]);
+            src.set(["temperature_sensors"], src{"temperature_sensors"}.length());
+            src.set(["responding"], src{"responding"}.length());
+            tgt = tgt.isnull() => {"reports":{}} | tgt;
+            tgt.put(["reports",k], src);
+            tgt.put(["report_time"], time:now())
+          })
+          */
+        }
     }
 
     rule request_report {
       select when zone report
-      /*
-      You will need a rule in the  manage_sensors ruleset that sends an event to each sensor pico (and only sensors) in the collection notifying them that a new temperature report is needed. Be sure there's a correlation ID in the event sent to the sensor picos and that it's propagated. 
-      */
         foreach subscription:established("Rx_role", "temp_sensor") setting (subscription)
           pre {
             req_id = ent:req_id.isnull() => 1 | ent:req_id
@@ -90,15 +75,18 @@ tgt.put([k], src)
                   }
                 }); 
           always {
+            ent:reports := ent:reports.isnull() => {} | ent:reports;
             report = ent:reports.get([req_id]).isnull() => 
                     {"temperature_sensors" : [],
                       "responding" : [],
                       "temperatures" : []
-                    } | ent:reports.get([req_id]);
-            report.set(["temperature_sensors"], report{"temperature_sensors"}.append(tx));
-            ent:reports := ent:reports.set([req_id], report);
-          
-            ent:req_id := ent:req_id + 1 on final
+                    } | ent:reports.get([req_id]); 
+            report = report.set(["temperature_sensors"], report{"temperature_sensors"}.append(tx));
+            ent:reports := ent:reports.get([req_id]).isnull() =>
+                    ent:reports.put([req_id], report) |
+                    ent:reports.set([req_id], report);
+                    
+            ent:req_id := ent:req_id.isnull() => 2 | ent:req_id + 1 on final
           }
     }
   
@@ -106,18 +94,17 @@ tgt.put([k], src)
     rule collect_report {
       select when sensor report 
       pre {
-          req_id = event:attr("req_id")
-          temperatures = event:attr("temperatures")
-          Rx = event:attr("sensor") 
-          reports = ent:reports
+          req_id = event:attr("req_id").as("String")
+          temperatures = event:attr("temperatures").klog("temperatures: ")
+          Rx = event:attr("sensor").klog("sensor-submitted rx: ")
         }
       if ent:reports >< req_id then
-      noop()
-      always {
-        report = ent:reports.get(["req_id"]);
-        report{"responding"}.append(Rx);
-        report{"temperatures"}.append(temperatures);
-        ent:reports := ent:reports.set(["req_id"], report)
+        noop()
+      fired {
+        report = ent:reports.get([req_id]);
+        report = report.set(["responding"], report{"responding"}.append(Rx));
+        report = report.set(["temperatures"], report{"temperatures"}.append(temperatures));
+        ent:reports := ent:reports.set([req_id], report)
       }
     }
 
@@ -126,6 +113,14 @@ tgt.put([k], src)
       noop()
       always{
         clear ent:reports
+      }
+    }
+    
+    rule clear_reqs {
+      select when zone clear_requests
+      noop()
+      always{
+        clear ent:req_id
       }
     }
 
