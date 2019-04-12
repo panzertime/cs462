@@ -7,6 +7,7 @@ ruleset temperature_store {
       >>
       author "RT Hatfield"
     use module io.picolabs.subscription alias subscription
+    use module sensor_profile
 
     logging on
     provides
@@ -92,6 +93,7 @@ ruleset temperature_store {
         "req_id" : req_id,
         "sensor" : rx,
         "host" : meta:host,
+        "sensor_name" : sensor_profile:get_profile(){"name"},
         "temperatures" : temperatures()
       }
     }, host=host)

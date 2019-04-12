@@ -1,0 +1,9 @@
+1. Yes. I re-used my lab 7 subscription code, which allows that. However, a sensor only responds to the pico which sends a report request, not all of the zone picos it may have subscriptions to. This could potentially allow someone to "eavesdrop" on your zone by joining your sensors to their zone too.
+
+2. You could use event conditions, etc. For example, you could check the ECI of the event to make sure it matches an established subscription (which I do), but that would require you to add some manner of controlling who can join sensors to zones (I did not).
+
+3. You can see that the "zone/report" event comes in to a zone pico, and then "sensor/report_wanted" appears on the bus in each sensor pico subscribed to the zone pico. Simultaneously (because there's basically zero network latency inside a VM), you see "sensor/report" events getting put on the zone pico's bus.
+
+4. I store a list of sensors that were sent report requests and a list of sensors that have reported back. In the last_five_reports function, I "collapse" those lists to just the count of how sensors are in them. When each member of the first list is repeated in the second, then all sensors have responded and the report is done.
+
+5. Eventually you abandon the non-responding sensors until someone looks at the report, notices them, and fixes them. The partial report stays in the zone pico's entity state "indefinitely," waiting to be completed. If the non-responding sensors do eventually respond, those reports will probably be waiting. If the entity state has been cleared since the request was delivered, then those responses are dropped because they don't match the report ID. I could automatically clear the state periodically to "terminate" old requests, but I decided it would be overkill.

@@ -44,19 +44,18 @@ ruleset manage_sensors {
         }
 
         last_five_reports = function() {
-          ent:reports
-          /*
-          keys = ent:reports.keys();
-          keys = keys.splice(0, keys.length()-6);
+          keys = ent:reports.keys().klog();
+          keys = keys.slice(keys.length()-5, keys.length()-1).klog(); 
+          keys = keys.isnull() => [] | keys;
           keys.reduce(function(tgt, k) {
-            src = ent:reports.get([k]);
-            src.set(["temperature_sensors"], src{"temperature_sensors"}.length());
-            src.set(["responding"], src{"responding"}.length());
-            tgt = tgt.isnull() => {"reports":{}} | tgt;
-            tgt.put(["reports",k], src);
+            src = ent:reports.get([k]).klog();
+            src = src.set(["temperature_sensors"], src{"temperature_sensors"}.length());
+            src = src.set(["responding"], src{"responding"}.length());
+            tgt = tgt.isnull() => {"reports":{}} | tgt.klog("target primitive ");
+            tgt = tgt.put(["reports",k], src);
             tgt.put(["report_time"], time:now())
-          })
-          */
+          }, {})
+          
         }
     }
 
@@ -97,13 +96,19 @@ ruleset manage_sensors {
           req_id = event:attr("req_id").as("String")
           temperatures = event:attr("temperatures").klog("temperatures: ")
           Rx = event:attr("sensor").klog("sensor-submitted rx: ")
+          name = event:attr("sensor_name")
         }
       if ent:reports >< req_id then
         noop()
       fired {
+        meta_temps = {
+          "sensor" : Rx,
+          "sensor_name" : name,
+          "temperatures" : temperatures
+        };
         report = ent:reports.get([req_id]);
         report = report.set(["responding"], report{"responding"}.append(Rx));
-        report = report.set(["temperatures"], report{"temperatures"}.append(temperatures));
+        report = report.set(["temperatures"], report{"temperatures"}.append(meta_temps));
         ent:reports := ent:reports.set([req_id], report)
       }
     }
