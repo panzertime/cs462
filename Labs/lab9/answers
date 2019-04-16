@@ -1,0 +1,13 @@
+1. We probably could. But it would be difficult, if not impossible, to know if there is a missing event between two apparently properly-ordered events. If you can get away with just ditching messages, then it's convenient and resource-prudent to do so.
+
+2. Yeah, my rumor-sending code should pick rumors to send in chronological order. If I wanted to be extra sure, I could sort the list by sequence number before picking from it, and only pick the first non-gapped rumor. Either way, they get stored in an unordered map, and the highest known sequence is stored separately from the rumors themselves.
+
+3. I only send a rumor if it's got a sequence number higher than what I know that peer has seen. Otherwise I know I need new rumors, so I send a seen to a peer. This depends on my knowledge of my peers being up to date. If a peer has gotten a message from someone else and not sent me a seen (or that same message), I might send it again—I wouldn't know to stop.
+
+4. Low values of n mean propagation is fast, but that there are lots of messages constantly, including when there aren't actually new temperatures to record or propagate. Higher n values mean that a node may not have very timely information about the other nodes, but gets state updates in larger batches.
+
+5. Sometimes. I wasn't able to shake all the bugs out of my lab. But most of the time they did eventually get there. I stored the messages in a map of maps, and I don't know if KRL maps display the same every time they get sent. In either case, I didn't consider storage ordering important, because messages have a built-in ordering and I keep track of the maximum consecutive sequence number seen seperately. It would be possible for them to arrive "out of order," but they'd all just go in the map anyway.
+
+6. Each sensor knows its own logs, and will propagate those to its neighbors. If it is turned on, it will share its state, and if its peers are turned on, they will get that state. That means that any state which gets put in the network will EVENTUALLY get to any node that is turned on, even if it takes a very long time. It just needs to be able to send a gossip/seen to a neighbor that has everything, and eventually some neighbor will.
+
+7. Each pico would maintain a table of the last time a pico was heard from. This table would be shared amongst the various nodes like the temperature log is. Periodically, a node could check its local table (assuming the table was fresh enough) and if any of its peers are marked on the table as having responded longer ago than some threshold, the node could then send a notification just like we do with temperature violations.
