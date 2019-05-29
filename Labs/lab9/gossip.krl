@@ -177,8 +177,14 @@ ruleset gossip {
     }
     
     getPeer = function() {
-      score_peer = function(peer) {
+      score_peer = function(seen_list) {
         // one point for each sensor they have less info on than we do
+        sensors = get_seen().keys().union(seen_list.keys())
+        sensors.reduce(function(score, sensor) {
+          score + (seen_list.get(sensor).defaultsTo(-1) - get_seen().get(sensor).defaultsTo(-1))
+        }, 0)
+      };
+
         keys = get_seen().keys().union(get_peer_seen(peer).keys());
         keys.reduce(function(score, key){
           diff = get_seen().get(key).defaultsTo(-1) - 
@@ -186,31 +192,18 @@ ruleset gossip {
           diff > 0 => score + 1 | score
         }, 0)
       };
-      g = get_peer_seen().klog("peerseen");
-      // find a set of just sensors who need something
-      peer_ids = get_peer_seen().filter(function(peer) {
-        k = peer.klog("peer");
-        s = score_peer(peer).klog("score");
-        score_peer(peer) > 0 || peer.keys().length() == 0
-      }).keys();
-      
-      all_peers = get_peers().keys();
-      filter_idx = random:integer(peer_ids.length() - 1).klog("Filter index");
-      bak_idx = random:integer(all_peers.length() - 1).klog("Backup index");
-      peer_id = peer_ids[filter_idx].klog("Filtered peer");
-      peer_id = (peer_id.isnull() => all_peers[bak_idx]
-        | peer_id).klog("Backup peer");
 
-      
-      // pick randomly from the reduced set if we can, the main set otherwise
-      // random choice means everyone gets a chance, though when we have 
-      // rumors to send they get to go before seens get sent to peers who have
-      // our rumors already
-      // i.e. we don't update ourselves until we've updated our friends
-     
-        
-      get_peers().klog("peers available");
-      peer_id.klog("chosen peer id");
+      peer_scores = get_peer_seen().map(function(k, v) {
+        {}.put(k, score(v))
+      });
+
+      peer_id = peer_scores.keys().sort(function(a, b){
+        score_a = peer_scores.get(a);
+        score_b = peer_scores.get(b);
+        score_a < score_b  => -1 |
+            score_a == score_b =>  0 |
+            1
+      }).head();
       
       sub = subscription:established("Id", get_peers(){"peer_id"})[0];
       {
